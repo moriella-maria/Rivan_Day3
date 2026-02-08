@@ -1,0 +1,632 @@
+
+
+CSI Covert Subtract Ipasok = CLUE: host, dev, users, pcs, routers
+CAI Covert Add Ipasok = CLUE: subnets offices, sites, maximise
+
+
+◘ ex1
+fec0:aabb:fafa:dada::/64 subnet/maximise to 32 offices/subnets
+
+convert to 2r: 32 = 2r5
+add to /: /64 + /5 = /69
+
+8421 8421 8421 8421
+
+0000
+0800
+1000
+1800
+2000
+
+◘ ex2
+fec0:aabb:fafa:dada::/64 subnet/maximise to 512 offices/subnets
+
+convert to 512 = 2r: 32 = 2r9
+
+
+8421 8421 8421 8421
+
+0000
+0080
+0100
+0180
+0200
+0280
+0300
+
+◘ ex3
+fec0:aabb:fafa:dada::/64 subnet/maximise to 4096 offices/subnets
+
+convert to 4096 = 2r: 2r12
+12 bits
+
+8421 8421 8421 8421
+
+0000
+0010
+0020
+0030
+0040
+0050
+0060
+
+
+◘ ex4
+fec0:aabb:fafa:dada::/64 subnet/maximise to 128 offices/subnets
+
+convert 128 to 2r = 2r7
+
+
+8421 8421 8421 8421
+xxxx xxxx xxxx xxxx
+
+
+\
+
+
+9bit
+
+0080
+0100
+0180
+0200
+
+
+
+11bits
+8 8 3
+0000
+0020
+
+◘ ex5 
+fec0:aabb:fafa:dada::/64 subnet/maximise to 8 offices/subnets
+
+convert 8 to 2r = 2r3
+
+3bits
+
+8421 8421 8421 8421
+xxxx xxxx xxxx xxxx
+
+
+0000
+2000
+4000
+8000
+a000
+c000
+e000
+1000
+
+
+◘ ex6 
+fec0:aabb:fafa:dada::/64 subnet/maximise to 450 offices/subnets
+
+convert 8 to 2r = 2r3
+
+3bits
+
+8421 8421 8421 8421
+xxxx xxxx xxxx xxxx
+
+
+0000
+2000
+4000
+8000
+a000
+c000
+e000
+1000
+
+9
+
+8
+8
+1
+
+======================================
+
+day5 (line 48-61)
+config t
+int lo 1
+ ipv6 add cafe:cafe:cafe:1212:0000::1212/73
+int lo 2
+ ipv6 add cafe:cafe:cafe:1212:0080::1212/73
+int lo 3
+ ipv6 add cafe:cafe:cafe:1212:0100::1212/73
+int lo 4
+ ipv6 add cafe:cafe:cafe:1212:0180::1212/73
+int lo 5
+ ipv6 add cafe:cafe:cafe:1212:0200::1212/73
+int lo 6
+ ipv6 add cafe:cafe:cafe:1212:0280::1212/73
+ do sh ipv6 int brief
+
+
+
+
+◘ (line 48-61) Modified
+
+cafe:cafe:cafe::/48
+subnet mo sa 512 subnets = 9bits
+
+9 =
+
+8421 8421 8421 8421
+4     4   1    1
+
+8i
+
+0000,0080,0100,0180,0200,0280,0300
+
+/48+9 = /57
+
+
+
+config t
+ipv6 unicast-routing
+int lo 1
+ ipv6 add cafe:cafe:cafe:0000:0000::f/57
+int lo 2
+ ipv6 add cafe:cafe:cafe:0000:0080::f/57
+int lo 3
+ ipv6 add cafe:cafe:cafe:0000:0100::f/57
+int lo 4
+ ipv6 add cafe:cafe:cafe:0000:0180::f/57
+int lo 5
+ ipv6 add cafe:cafe:cafe:0000:0200::f/57
+int lo 6
+ ipv6 add cafe:cafe:cafe:0000:0280::f/57
+ do sh ipv6 int brief
+
+====
+
+
+bebe:baba:caca:dada::/64
+subnet mo sa 32 subnets = 0000,0800,1000,1800,2000,2800
+32  = 2r5
+64+5 = 69
+
+config t
+ipv6 unicast-routing
+int lo 1
+ ipv6 add bebe:baba:caca:dada:0000::1/69
+int lo 2
+ ipv6 add bebe:baba:caca:dada:0800::1/69
+int lo 3
+ ipv6 add bebe:baba:caca:dada:1800::1/69
+int lo 4
+ ipv6 add bebe:baba:caca:dada:1800::1/69
+int lo 5
+ ipv6 add bebe:baba:caca:dada:2800::1/69
+int lo 6
+ ipv6 add bebe:baba:caca:dada:2800::1/69
+ do sh ipv6 int brief
+ 
+ 
+
+=======================
+
+DAY 3 Complete Routing
+
+
+windows 
+route print
+
+linux
+netstat -rn
+
+cisco
+show ip route
+
+CHATGPT
+how to check the routing table in commandline for
+palo alto
+fortinet
+arista
+juniper
+huawei 
+cisco
+make a table
+
+
+Mr. Bodds = MPLS RIP
+
+
+====S1
+config t
+int e1/0
+ no shut
+ ip add 192.168.1.133 255.255.255.224
+ do bp
+!These are floating Default Static routes with redundancy
+ ip route 0.0.0.0 0.0.0.0 192.168.1.129 1
+ ip route 0.0.0.0 0.0.0.0 192.168.1.130 5
+ do sh ip route static
+ 
+ 
+ 
+ 
+
+
+P1 is vlan 10, needs Staticroute vlan20 and vlan100
+@P1:
+config t
+!!static routes
+ip route 10.2.2.0 255.255.255.0 10.2.1.1 1
+ip route 10.2.2.0 255.255.255.0 10.2.1.2 5
+ip route 192.168.1.128 255.255.255.224 10.2.1.1 1
+ip route 192.168.1.128 255.255.255.224 10.2.1.2 5
+!!dahil end point si P1 (default routes)
+ip route 0.0.0.0 0.0.0.0 10.2.1.1 1
+ip route 0.0.0.0 0.0.0.0 10.2.1.2 5
+end
+show run | inc route
+
+
+
+COREBABA
+config t
+no logging console
+enable secret pass
+int vlan 1
+ip add 10.12.1.4 255.255.255.0
+
+
+ip routing
+router eigrp 100
+network 10.0.0.0
+router ospf 1
+network 0.0.0.0 255.255.255.255 area 0
+router bgp 1
+network 10.0.0.0
+end
+
+
+!@R4
+conf t
+ int e3/3
+  no shut
+  ip add dhcp
+  ip ospf 1 area 0
+  exit
+router eigrp 100
+ network 208.8.8.0 0.0.0.255
+ end
+ 
+How to configure OSPF on Palo Alto Cisco Arista Fortinet
+
+
+=====
+
+ART
+
+STATIC 1
+EIGRP 
+OSPF 110
+
+d1
+show ip route | inc c
+
+===========
+D2 VLAN 100
+192.168.1.130/27
+
+1. convert rivan format
+/27 - 4th, 32i
+
+2, mag bilang
+192.168.1.x /27
+         .0
+         .32
+         .64
+         .96
+         .128/27 = ang network
+		 .160
+
+===========
+D2 VLAN 10
+10.2.1.2/24
+
+1. convert rivan format
+3rd, 1i
+
+2, mag bilang
+10.2.1.x /24
+10.2.1.x /24
+10.2.1.x /24
+10.2.1.x /24
+10.2.1.x /24
+
+
+====
+
+conf t
+ router ___  __
+  router-id __.__.__.__
+  network __.__.__.__  __.__.__.__ area __
+  network __.__.__.__  __.__.__.__ area __
+  end
+  
+
+
+clear
+
+what is inside a Hello Packet
+
+Router ID
+Area ID
+Subnet Mask
+Authentication type
+
+for 10 times
+dead 40s
+
+DR BDR
+
+O IA     10.10.8.1/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+O IA     10.10.9.1/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+O IA     10.10.10.1/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+O IA     10.10.11.1/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+
+
+O IA     10.10.33.1/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+O IA     10.10.33.129/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+O IA     10.10.34.1/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+O IA     10.10.34.129/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+
+
+conf t
+ router ospf 1
+  no area 12 range 10.10.8.0 255.255.252.0
+  end
+  
+!@R2
+conf t
+int lo7
+ip add 10.10.7.1 255.255.255.255
+ip ospf 1 area 12
+end
+
+
+O IA     10.10.7.1/32 [110/11] via 10.1.1.2, 00:00:11, Ethernet1/0
+O IA     10.10.8.1/32 [110/11] via 10.1.1.2, 00:01:49, Ethernet1/0
+O IA     10.10.9.1/32 [110/11] via 10.1.1.2, 00:01:49, Ethernet1/0
+O IA     10.10.10.1/32 [110/11] via 10.1.1.2, 00:01:49, Ethernet1/0
+O IA     10.10.11.1/32 [110/11] via 10.1.1.2, 00:01:49, Ethernet1/0
+
+Summarise
+
+1. determine what octet the above ip varied (3rd octet)
+2. highest - lowest (11-7 = 4)
+3. 16i
+
+10.10.0.0 /20 (3rd, 16i)
+10.10.16.0
+10.10.32.0
+10.10.48.0
+
+
+!@R2
+conf t
+ router ospf 1
+  area 12 range 10.10.0.0 255.255.240.0
+  end
+  
+  line 2178
+  
+O IA     10.10.33.1/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+O IA     10.10.33.129/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+O IA     10.10.34.1/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+O IA     10.10.34.129/32 [110/11] via 10.1.1.2, 00:00:43, Ethernet1/0
+
+1. 3rd
+2 34-33 = 1 = 2i, if not, try 4i
+2. 3rd, 4i
+
+10.10.32.0 /22  
+10.10.36.0
+10.10.40.0
+
+!@R2
+conf t
+ router ospf 1
+  area 12 range 10.10.32.0 255.255.252.0
+  end
+  
+  
+!@S1
+conf t
+	 int e1/0
+	 no shut
+	 ip add 69.69.69.1 255.255.255.0
+	 exit
+	 
+router bgp 11
+	neighbor 69.69.69.2 remote-as 12
+	network 69.69.69.0 mask 255.255.255.0
+	end
+	
+	
+!@D1
+conf t
+	int e3/3
+	no switchport
+	no shut
+	ip add dhcp
+	exit
+monitor session 1 source int e1/0
+monitor session 1 destination int e3/3
+
+
+!@D1
+conf t
+	int e1/0
+	no switchport
+	no shut
+	ip add 69.69.69.2 255.255.255.0
+	exit
+router bgp 12
+	neighbor 69.69.69.1 remote-as 12
+	network 69.69.69.0 mask 255.255.255.0
+	end
+	
+	
+	BGP Destination Port: 179
+	
+NOKU
+Notificaton
+Open Message
+Keepalive
+Update
+
+
+!@R1
+conf t
+ router bgp 1
+  bgp log-neighbor-changes
+   neighbor 208.8.8.4 remote-as 45
+   neighbor 207.7.7.2 remote-as 2
+   neighbor 209.9.9.3 remote-as 3
+   address-family ipv4
+	neighbor 208.8.8.4 activate
+    neighbor 207.7.7.2 activate
+    neighbor 209.9.9.3 activate
+    network 207.7.7.0 mask 255.255.255.0
+    network 208.8.8.0 mask 255.255.255.0
+    network 209.9.9.0 mask 255.255.255.0
+    end
+
+!@I3 (GLOBE)
+conf t
+ router bgp 3
+  bgp log-neighbor-changes
+  neighbor 32.3.2.2 remote-as 2
+  neighbor 35.3.5.5 remote-as 45
+  neighbor 209.9.9.1 remote-as 1
+  address-family ipv4
+   neighbor 32.3.2.2 activate
+   neighbor 35.3.5.5 activate
+   neighbor 209.9.9.1 activate
+   network 209.9.9.0 mask 255.255.255.0
+   network 32.3.2.0 mask 255.255.255.0
+   network 33.33.33.33 mask 255.255.255.255
+   network 35.3.5.0 mask 255.255.255.0
+   end
+   
+
+
+### 🎯 Exercise 20: Configure P1, P2, & S2 to successfully ping 8.8.8.8
+and the return IP should be below as requested by Sir Art
+P1: 207.7.7.201
+P2: 208.8.8.202
+S2: 209.9.9.203
+
+!@R1
+conf t
+ ip nat inside source static 10.1.1.101 207.7.7.201
+ ip nat inside source static 10.2.1.102 208.8.8.202
+ ip nat inside source static 10.2.2.133 209.9.9.203
+ end
+show ip nat translations
+
+
+
+
+IPv4
+/27 (4th, 32i)
+
+IPv6
+/65 (Hextet, Hexadecimal, i)
+/65 (5th Hextet, 1st Hexadecimal, 8i)
+/126 (8th Hextet, 4th Hexadecimal, 4i)
+/78 (5th, 4th, 4i)
+
+
+♠ Configure 10 Offices using 2001:db8::/78
+CAI (offices)
+CONVERT: 10 = 4 bits
+ADD: /78 +4 = /82 (6th Hextet, 1st Hexadecimal, 4i)
+
+
+
+1st Office = 2001:0db8:0000:0000:0000:0000:0000:0000:/82
+2nd Office = 2001:0db8:0000:0000:0000:4000:0000:0000:/82
+3rd Office = 2001:0db8:0000:0000:0000:8000:0000:0000:/82
+4th Office = 2001:0db8:0000:0000:0000:C000:0000:0000:/82
+
+Using the 3rd Office/Subnet, 
+assign the IPv6 GUA IP on R4's e0/0
+assign the IPv6 GUA on I4/GOOGLE-DNS e0/0
+
+2001:0db8:0000:0000:0000:8000:0000:0000:/82
+or
+2001:db8::8000:0:0/82
+
+!@R4 and @I4(GOOGLE)
+conf t
+ ipv6 unicast-routing
+ int e0/0
+  no shut
+  ipv6 add 2001:db8::8000:0:0/82 eui-64
+  end
+  
+♠ Configure 32 Offices using 2001::/20
+CAI (offices)
+CONVERT: 32 = 5 bits
+ADD: /20 +5 = /25 (2nd Hextet, 3rd Hexadecimal, 8i)
+
+2001:0000:0000:0000:0000:0000:0000:0000:/25
+
+1st Office = 2001:0000:0000:0000:0000:0000:0000:0000:/25
+2nd Office = 2001:0080:0000:0000:0000:0000:0000:0000:/25
+3rd Office = 2001:0100:0000:0000:0000:0000:0000:0000:/25
+
+2001:100::/25
+
+1st valid (+1 sa network): 2001:100::1/25
+last valid (-1 sa Anycast): 2001:010F:0000:0000:FFFF:FFFF:FFFF:FF7F:/64
+Anycast (last 128 IP add): 
+2001:010F:0000:0000:FFFF:FFFF:FFFF:FF80:/64
+2001:010F:0000:0000:FFFF:FFFF:FFFF:FFFF:/64
+Not Network: 2001:180::/25
+
+Using the 2nd Office/Subnet, 
+assign the first valid IPv6 address on R3's e0/0
+
+
+=
+2001:010F:0000:0000:0000:0000:0000:0000:/64
+
+!@R3
+conf t
+ int e0/0
+  no shut
+  ipv6 add 2001:010F:0000:0000:FFFF:FFFF:FFFF:FF7F:/64
+
+ 
+ 
+
+♠ Configure 12 Offices using 2001::/90
+CAI (offices)
+
+CONVERT: 12 = 4 bits
+ADD: /90 + 4 = /94 (6th Hextet, 4th Hexadecimal, 4i)
+
+Find the 3rd office
+
+1st: 2001:0000:0000:0000:0000:0000:0000:0000/94
+2nd: 2001:0000:0000:0000:0000:0004:0000:0000/94
+3rd: 2001:0000:0000:0000:0000:0008:0000:0000/94 OR 2001::8:0:0/94
+
+NETWORK: 2001::8:0:0/94
+	1st valid IP: 2001::8:0:1/94
+	last valid IP: FF7F
+	Anycast: FF7F
+	Not Network: FF80-FFFF
+	
+	
+Configure RST Hayup
+Traceroute 8.8.8.8
+
