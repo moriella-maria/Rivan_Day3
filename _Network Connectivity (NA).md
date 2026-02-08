@@ -2799,7 +2799,7 @@ conf t
 &nbsp;
 
 ### Route Maps
-
+~~~
 conf t
  access-list 1 permit 10.0.0.0 0.255.255.255
  access-list 1 permit 172.16.0.0 0.15.255.255
@@ -2822,15 +2822,7 @@ conf t
  ip nat inside source route-map NAT_ISP2 pool POOL7 overload
  ip nat inside source route-map NAT_ISP3 pool POOL9 overload
  end
- 
- 
- 
-conf t
- ip nat inside source static 10.1.4.6 209.9.9.10 
- ip nat inside source static 10.1.1.2 208.8.8.10
- ip nat inside source static 10.1.1.10 207.7.7.10
- end
-show ip nat translations
+~~~
 
 
 
