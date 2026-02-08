@@ -1212,7 +1212,7 @@ If all Cisco, use __EIGRP__
 
 ## 🔀 EIGRP
 Steps in configuring EIGRP
-1. Decide on an ASN
+1. Decide on an ASN (show ip route | inc c)
 2. Determine Connected Networks
 3. Advertise
 
