@@ -1,0 +1,371 @@
+◘ GOAL ◘
+P1 P2 S1 S2 to ping 8.8.8.8
+If we want more challenge, we can also configure static NAT on R1 so that the P1 P2 S1 S2 have their own static mapping when they're pinging 8.8.8.8
+
+◘ 1. assign IP addresses on P1 P2 S1 S2
+P1 = 10.2.1.101 /24
+P2 = 10.2.1.102 /24
+S1 = 192.168.1.133 /27
+S2 = 10.2.2.133 /24
+
+@P1
+config t
+int e0/0
+no shut
+ip add 10.2.1.101 255.255.255.0
+(ctrl C)
+
+@P2
+config t
+int e1/0
+no shut
+ip add 10.2.1.102 255.255.255.0
+(ctrl C)
+
+@S1
+config t
+int e1/0
+no shut
+ip add 192.168.1.133 255.255.255.224
+(ctrl C)
+
+@S2
+config t
+int e1/0
+no shut
+ip add 10.2.2.133 255.255.255.0
+(ctrl C)
+
+sh ip int brief
+or 
+bp to check the IP
+
+
+
+
+
+◘ 2. assign P1 P2 S1 S2 to correct VLANs
+
+@A1
+config t
+int e0/0
+switchport mode access
+switchport access vlan 10
+
+@A2
+config t
+int e1/0
+switchport mode access
+switchport access vlan 10
+
+@D1
+config t
+int e1/0
+switchport mode access
+switchport access vlan 100
+
+@D2
+config t
+int e1/0
+switchport mode access
+switchport access vlan 20
+
+@A1 A2 D1 D2 to verify on all the 4 switches
+sh vlan brief
+
+At this point P1 should be able to ping P2 because they are on the same VLAN and Subnet
+
+@P1
+ping 10.2.1.102 (P2 IP)
+
+
+◘ 3. let's do default route and also floating default route
+
+@P1 
+config t
+ip route 0.0.0.0 0.0.0.0 10.2.1.1 1
+ip route 0.0.0.0 0.0.0.0 10.2.1.2 10
+end
+
+@S1
+config t
+ip route 0.0.0.0 0.0.0.0 192.168.1.129
+end
+
+ping 10.2.2.1 should be pingable  
+ping 10.2.2.101 should be pingable (P1 IP)
+
+
+@P2
+config t
+ip route 0.0.0.0 0.0.0.0 10.2.1.2 1
+ip route 0.0.0.0 0.0.0.0 10.2.1.2 10
+end
+
+@S2
+config t
+ip route 0.0.0.0 0.0.0.0 10.2.2.2
+end
+
+@P1 to verify
+ping 10.2.1.102 should be pingable (P2 IP)
+
+ping 10.2.2.133 should be pingable (S2 IP)
+
+
+◘ 4. configure EIGRP
+
+@D1
+config t
+router eigrp 100
+network 10.2.1.0 0.0.0.255
+network 10.2.2.0 0.0.0.255
+network 192.168.1.128 0.0.0.31
+network 10.1.4.4 0.0.0.3
+end
+
+show ip eigrp neighbors
+
+show ip route eigrp
+
+@D2
+config t
+router eigrp 100
+network 10.2.1.0 0.0.0.255
+network 10.2.2.0 0.0.0.255
+network 192.168.1.128 0.0.0.31
+network 10.1.4.8 0.0.0.3
+end
+
+show ip eigrp neighbors
+
+show ip route eigrp
+
+@R4 do it then verify
+show ip route eigrp
+config t
+router eigrp 100
+network 10.1.4.4 0.0.0.3
+end
+
+@R4 do it then verify
+show ip route eigrp
+should show 3 routes
+
+
+
+
+
+
+◘ 5. configure OSPF (area 0, single area in this example)
+@R4
+config t 
+int e1/2
+ip ospf network point-to-point
+exit
+router ospf 1
+router-id 4.4.4.4
+network 4.4.4.4 0.0.0.0 area 0
+network 10.1.1.8 0.0.0.3 area 0
+end
+
+@R3
+config t 
+int e1/2
+ip ospf network point-to-point
+exit
+router ospf 1
+router-id 3.3.3.3
+network 3.3.3.3 0.0.0.0 area 0
+network 10.1.1.8 0.0.0.3 area 0
+network 10.1.1.4 0.0.0.3 area 0
+end
+
+
+
+r2 e1/2 prio 255
+r1 e1/0 prio 0
+
+ip ospf priority 255
+ip ospf priority 0
+
+
+@R2 (morie)
+config t 
+int e1/1
+ip ospf network point-to-point
+exit
+int e1/2
+ip ospf priority 255
+exit
+router ospf 1
+router-id 2.2.2.2
+network 2.2.2.2 0.0.0.0 area 0
+network 10.1.1.0 0.0.0.3 area 0
+network 10.1.1.4 0.0.0.3 area 0
+end
+
+show ip ospf neighbors
+
+
+@R1 (morie)
+config t 
+int e1/0
+ip ospf priority 0
+exit
+router ospf 1
+router-id 1.1.1.1
+network 1.1.1.1 0.0.0.0 area 0
+network 10.1.1.0 0.0.0.3 area 0
+end
+
+show ip ospf neighbor
+
+
+
+◘ 6. Point-to-point connection,and assigning proper Priority
+
+
+◘ 7. configure BGP
+
+R1 1
+PLDT 2
+Globe 3
+Google/Converge 45
+
+@R1
+conf t
+ router bgp 1
+  bgp log-neighbor-changes
+  neighbor 209.9.9.3 remote-as 3
+  neighbor 207.7.7.2 remote-as 2
+  neighbor 208.8.8.4 remote-as 45
+  address-family ipv4
+   neighbor 209.9.9.3 activate
+   neighbor 207.7.7.2 activate
+   neighbor 208.8.8.4 activate
+   network 209.9.9.0 mask 255.255.255.0
+   network 207.7.7.0 mask 255.255.255.0  
+   network 208.8.8.0 mask 255.255.255.0
+end
+
+@I2
+conf t
+ router bgp 2
+  bgp log-neighbor-changes
+  neighbor 32.3.2.3 remote-as 3
+  neighbor 25.2.5.5 remote-as 45
+  neighbor 24.2.4.4 remote-as 45
+  neighbor 207.7.7.1 remote-as 1
+  address-family ipv4
+  neighbor 32.3.2.3 activate
+  neighbor 25.2.5.5 activate
+  neighbor 24.2.4.4 activate
+  neighbor 207.7.7.1 activate
+   network 22.22.22.22 mask 255.255.255.255
+   network 32.3.2.0 mask 255.255.255.0
+   network 25.2.5.0 mask 255.255.255.0  
+   network 24.2.4.0 mask 255.255.255.0
+   network 207.7.7.0 mask 255.255.255.0
+   end
+
+@Google/Converge
+conf t
+router bgp 45
+bgp log-neighbor-changes
+neighbor 35.3.5.3 remote-as 3
+neighbor 25.2.5.2 remote-as 2
+neighbor 45.4.5.4 remote-as 45
+address-family ipv4
+neighbor 35.3.5.3 activate
+neighbor 25.2.5.2 activate
+neighbor 45.4.5.4 activate
+network 55.55.55.55 mask 255.255.255.255
+network 8.8.8.8 mask 255.255.255.255
+network 35.3.5.0 mask 255.255.255.0
+network 25.2.5.0 mask 255.255.255.0
+network 45.4.5.0 mask 255.255.255.0
+
+
+R1 1
+PLDT 2
+Globe 3
+Google/Converge 45
+
+
+@I3
+conf t
+ router bgp 3
+  bgp log-neighbor-changes
+  neighbor 209.9.9.1 remote-as 1
+  neighbor 32.3.2.2 remote-as 2
+  neighbor 35.3.5.5 remote-as 45
+  address-family ipv4
+  neighbor 209.9.9.1 activate
+  neighbor 32.3.2.2 activate
+  neighbor 35.3.5.5 activate
+   network 33.33.33.33 mask 255.255.255.255
+   network 209.9.9.0 mask 255.255.255.0
+   network 32.3.2.0 mask 255.255.255.0  
+   network 35.3.5.0 mask 255.255.255.0
+   end
+
+
+R1 1
+PLDT 2
+Globe 3
+Google/Converge 45
+
+
+@I1
+conf t
+ router bgp 45
+  bgp log-neighbor-changes
+  neighbor 208.8.8.1 remote-as 1
+  neighbor 24.2.4.2 remote-as 2
+  neighbor 45.4.5.5 remote-as 45
+  address-family ipv4
+  neighbor 208.8.8.1 activate
+  neighbor 24.2.4.2 activate
+  neighbor 45.4.5.5 activate
+   network 44.44.44.44 mask 255.255.255.255
+   network 208.8.8.0 mask 255.255.255.0
+   network 24.2.4.0 mask 255.255.255.0  
+   network 45.4.5.0 mask 255.255.255.0
+   end
+
+To verify
+@I2
+show bgp summary
+
+@R1 
+show ip route
+
+ 
+◘ 8. Redistribute Routes
+
+@R4 (to see the data needed for next R4 scripts)
+show int e1/0
+
+@R4
+conf t
+router ospf 1
+redistribute eigrp 100 subnets
+exit
+router eigrp 100
+redistribute ospf 1 metric 10000 100 255 1 1500
+end
+
+lets check between D1 and R3
+
+@D1 - there sud be eigrp external
+show ip route
+
+@R1 - there sud be ospf external type 2
+show ip route
+
+@P1
+ping 1.1.1.1 (pingable)
+
+◘ 9. configure NAT
+
